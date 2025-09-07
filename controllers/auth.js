@@ -10,7 +10,7 @@ const saltRounds = 10;
 router.post('/sign-up', async (req, res) => {
     console.log('req.body:', req.body);
     console.log('Content-Type:', req.headers['content-type']);
-    
+
     try {
         const userInDatabase = await User.findOne({ screen_name: req.body.screen_name });
 
@@ -32,12 +32,7 @@ router.post('/sign-up', async (req, res) => {
         res.status(201).json({
             message: 'User created successfully',
             token,
-            user: {
-                id: user._id,
-                screen_name: user.screen_name,
-                personal_status: user.personal_status,
-                is_online: user.is_online
-            }
+            user: user
         });
     } catch (err) {
         res.status(500).json({ err: err.message });
