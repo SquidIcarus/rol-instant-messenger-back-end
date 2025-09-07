@@ -23,17 +23,14 @@ router.post('/sign-up', async (req, res) => {
             password: bcrypt.hashSync(req.body.password, saltRounds)
         });
 
-        const token = jwt.sign(
-            { userId: user._id, screen_name: user.screen_name },
+        const payload = { username: user.username, _id: user._id };
+
+        const token = jwt.sign({ payload },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        res.status(201).json({
-            message: 'User created successfully',
-            token,
-            user: user
-        });
+        res.status(201).json({ token });
     } catch (err) {
         res.status(500).json({ err: err.message });
     }
