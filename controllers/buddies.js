@@ -4,8 +4,6 @@ const verifyToken = require('../middleware/verify-token');
 const Buddy = require('../models/Buddy');
 const User = require('../models/User');
 
-module.exports = router;
-
 // buddy list route 
 
 router.get('/', verifyToken, async (req, res) => {
@@ -51,3 +49,27 @@ router.post('/', verifyToken, async (req, res) => {
         res.status(500).json({ err: err.message });
     }
 });
+
+// Remove buddy route
+
+router.delete('/:buddyId', verifyToken, async (req, res) => {
+    try {
+        const buddy = await Buddy.findOne({
+            _id: req.params.buddyId,
+            user_id: req.user._id
+        }).populate('friend_user_id', 'screen_name');
+
+        if (!buddy) {
+            return res.status(404).json({ err: 'Buddy not found.' });
+        }
+
+        buddy.is_active = false;
+        await buddy.save();
+
+        res.json({ message: `You are no longer buddies with ${buddy.friend_user_id.screen_name}` });
+    } catch (err) {
+        res.status(500).json({ err: err.message });
+    }
+});
+
+module.exports = router;
