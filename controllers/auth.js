@@ -11,10 +11,19 @@ router.post('/sign-up', async (req, res) => {
     console.log('Content-Type:', req.headers['content-type']);
 
     try {
+
+        if (!req.body.screen_name || !req.body.password) {
+            return res.status(400).json({ err: 'Screen name and password are required.' })
+        }
+
         const userInDatabase = await User.findOne({ screen_name: req.body.screen_name });
 
         if (userInDatabase) {
             return res.status(409).json({ err: 'Screen name already taken.' });
+        }
+
+        if (req.body.password.length < 6) {
+            return res.status(400).json({ err: 'Password must be at least 6 characters long.' });
         }
 
         const user = await User.create({
@@ -31,13 +40,20 @@ router.post('/sign-up', async (req, res) => {
 
         res.status(201).json({ token });
     } catch (err) {
+        console.error('Sign-up error:', err);
         res.status(500).json({ err: err.message });
     }
 });
 
 router.post('/sign-in', async (req, res) => {
     try {
+
+        if (!req.body.screen_name || !req.body.password) {
+            return res.status(400).json({ err: 'Screen name and password are required.' });
+        }
+
         const user = await User.findOne({ screen_name: req.body.screen_name });
+
         if (!user) {
             return res.status(401).json({ err: 'Invalid credentials.' });
         }
@@ -57,6 +73,7 @@ router.post('/sign-in', async (req, res) => {
 
         res.status(200).json({ token });
     } catch (err) {
+        console.error('Sign-in error:', err);
         res.status(500).json({ err: err.message });
     }
 });
