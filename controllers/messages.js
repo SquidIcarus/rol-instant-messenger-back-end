@@ -60,4 +60,41 @@ router.post('/', verifyToken, async (req, res) => {
     }
 });
 
+router.get('/:buddyScreenName', verifyToken, async (req, res) => {
+    try {
+        const buddyScreenName = req.params.buddyScreenName;
+
+        const buddy = await User.findOne({ screen_name: buddyScreenName });
+
+        if (!buddy) {
+            return res.status(404).json({ err: 'User not found.' });
+        }
+
+        const conversation = await Conversation.findOne({
+            $or: [
+                { user1_id: req.user._id, user2_id: buddy._id },
+                { user1_id: buddy._id, user2_id: req.user._id }
+            ]
+        });
+
+        if (!conversation) {
+            console.log('No conversation found');
+            return res.json([]);
+        }
+
+        const messages = await Message.find({
+            conversation_id: conversation._id
+        })
+            .populate('sender_id', 'screen_name')
+            .sort({ sent_at: 1 });
+
+        console.log(`Found ${messages.length} messages in conversation`);
+
+        res.json(messages);
+    } catch (err) {
+        console.error('Error getting messages:', err);
+        res.status(500).json({ err: err.message })
+    }
+});
+
 module.exports = router;
