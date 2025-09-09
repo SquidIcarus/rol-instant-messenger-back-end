@@ -11,7 +11,7 @@ router.get('/', verifyToken, async (req, res) => {
         const buddies = await Buddy.find({
             user_id: req.user._id,
             is_active: true
-        });
+        }).populate('friend_user_id', 'screen_name');
 
         res.json(buddies);
     } catch (err) {
